@@ -1,4 +1,7 @@
 # main.py
+from dotenv import load_dotenv
+load_dotenv()
+
 from scraper import search, scrape
 from vector_db import chunk, store_chunks, retrieve
 from llm import generate_answer
@@ -12,11 +15,17 @@ def run(query):
     for url in urls:
         print(f"Scraping: {url}")
         text = scrape(url)
-        chunks = chunk(text)
-        all_chunks.extend(chunks)
+        if text.strip():
+            chunks = chunk(text)
+            all_chunks.extend(chunks)
+
+    all_chunks = [c for c in all_chunks if c.strip()]
 
     print("📦 Storing in vector DB...")
-    store_chunks(all_chunks)
+    if all_chunks:
+        store_chunks(all_chunks)
+    else:
+        print("⚠️ No content scraped, skipping vector DB storage.")
 
     print("🧠 Retrieving relevant chunks...")
     docs = retrieve(query)
@@ -28,4 +37,4 @@ def run(query):
 
 
 if __name__ == "__main__":
-    run("What is LangGraph?")
+    run("tell me some backend engineer jobs in banglore")
